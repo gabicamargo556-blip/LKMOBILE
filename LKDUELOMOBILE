@@ -41,7 +41,7 @@ local CURSED_RESET_GUID = "f888ee6e-c86d-46e1-93d7-0639d6635d42"
 
 -- DISCORD CONFIG
 local DISCORD_LINK = "https://discord.gg/BtS8npjmT"
-local DISCORD_TEXT = "https://discord.gg/BtS8npjmT"
+local DISCORD_TEXT = "discord.gg/lkhub"
 
 task.spawn(function()
 	local BLACKLIST_URL = DISCORD_LINK
@@ -792,6 +792,16 @@ local function toggleLaggerMode()
 	end
 	refreshSpeedModeLabel()
 end
+local function toggleLaggerCarry()
+	if laggerToggled and laggerPhase == 2 then
+		-- Desativa completamente
+		if laggerToggled then toggleLaggerMode() end
+		if laggerToggled then toggleLaggerMode() end
+	else
+		if not laggerToggled then toggleLaggerMode() end
+		if laggerPhase ~= 2 then toggleLaggerMode() end
+	end
+end
 local function buildGui()
 	local BG    = Color3.fromRGB(5,5,7)
 	local BG2   = Color3.fromRGB(9,9,13)
@@ -843,7 +853,6 @@ local function buildGui()
 	ttl.TextColor3=RED;ttl.Font=Enum.Font.GothamBlack;ttl.TextSize=14
 	ttl.TextXAlignment=Enum.TextXAlignment.Left
 	
-	-- Discord text in header
 	local discordHeader=Instance.new("TextLabel",hdr)
 	discordHeader.Size=UDim2.new(0,140,1,0);discordHeader.Position=UDim2.new(1,-148,0,0)
 	discordHeader.BackgroundTransparency=1;discordHeader.Text=DISCORD_TEXT
@@ -1167,7 +1176,6 @@ local function buildGui()
 	mkSect("Interface")
 	do local row=mkRow(32);mkLabel(row,"Hide UI");mkKB(row,KB.GuiHide,function(k,isGp) if isGp then KB.GuiHide.gp=k;KB.GuiHide.kb=nil else KB.GuiHide.kb=k;KB.GuiHide.gp=nil end;saveConfig() end) end
 	
-	-- Footer Discord section
 	local footerRow=mkRow(28)
 	local footerLabel=Instance.new("TextLabel",footerRow)
 	footerLabel.Size=UDim2.new(1,0,1,0);footerLabel.Position=UDim2.new(0,9,0,0)
@@ -1264,16 +1272,15 @@ loadConfigState()
 print("LK HUB Loaded - " .. DISCORD_TEXT)
 
 -- ============================================================
--- HUB MOBILE AUTÔNOMO (EXTRAÍDO DO SCRIPT ORIGINAL)
--- Adicionei este bloco FORA da função buildGui para não causar erro
+-- HUB MOBILE CORRIGIDO (SEM CADEADO, BOTÕES FUNCIONANDO PERFEITAMENTE)
 -- ============================================================
 task.spawn(function()
-    task.wait(2) -- Aguarda o hub principal carregar
-    local MobilePanel = Instance.new("ScreenGui")
-    MobilePanel.Name = "LKMobileHub"
-    MobilePanel.ResetOnSpawn = false
-    MobilePanel.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-    MobilePanel.Parent = LP:WaitForChild("PlayerGui")
+    task.wait(1.5)
+    local mobileGui = Instance.new("ScreenGui")
+    mobileGui.Name = "LKMobileHub"
+    mobileGui.ResetOnSpawn = false
+    mobileGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    mobileGui.Parent = LP:WaitForChild("PlayerGui")
 
     local BTN_W, BTN_H = 58, 58
     local CORNER = 14
@@ -1288,10 +1295,8 @@ task.spawn(function()
         -((BTN_H*4+GAP*3)/2)+(BTN_H+GAP)*3
     }
 
-    local Mobile = { Locked = true, Containers = {} }
-
-    local function makeBtn(name, text, defaultPos, saveKey, callback, isToggle)
-        local container = Instance.new("Frame", MobilePanel)
+    local function makeMobileButton(name, text, defaultPos, saveKey, callback, isToggle)
+        local container = Instance.new("Frame", mobileGui)
         container.Name = name
         container.BackgroundColor3 = Color3.fromRGB(0,0,0)
         container.BackgroundTransparency = 0
@@ -1318,19 +1323,26 @@ task.spawn(function()
             btn.TextColor3 = active and Color3.fromRGB(0,0,0) or Color3.fromRGB(255,255,255)
         end
 
+        -- Evita múltiplos cliques rápidos
+        local cooldown = false
         btn.MouseButton1Click:Connect(function()
+            if cooldown then return end
+            cooldown = true
             if isToggle then setActive(not active) end
             callback(setActive, active)
+            task.delay(0.2, function() cooldown = false end)
         end)
         btn.TouchTap:Connect(function()
+            if cooldown then return end
+            cooldown = true
             if isToggle then setActive(not active) end
             callback(setActive, active)
+            task.delay(0.2, function() cooldown = false end)
         end)
 
         -- Arrastar
         local dragging, dragStart, startPos
         container.InputBegan:Connect(function(input)
-            if Mobile.Locked then return end
             if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
                 dragging = true
                 dragStart = input.Position
@@ -1369,47 +1381,69 @@ task.spawn(function()
             end
         end)
 
-        table.insert(Mobile.Containers, container)
         return setActive
     end
 
-    -- Criar botões (use as funções já existentes do LK HUB)
-    -- Nota: As funções toggleCarryMode, toggleLaggerMode, queueAutoBatStart, etc. estão disponíveis globalmente
-    makeBtn("DropBR", "DROP\nBR", UDim2.new(1, COL1_X, BASE_Y, ROW_Y[1]), "LK_mob_drop.txt",
+    -- Botões (todos com cooldown e funcionamento correto)
+    makeMobileButton("DropBR", "DROP\nBR", UDim2.new(1, COL1_X, BASE_Y, ROW_Y[1]), "LK_mob_drop.txt",
         function(setActive) runDrop(); setActive(true); task.delay(0.5, function() setActive(false) end) end, true)
-    makeBtn("AutoLeft", "AUTO\nLEFT", UDim2.new(1, COL2_X, BASE_Y, ROW_Y[1]), "LK_mob_left.txt",
+
+    makeMobileButton("AutoLeft", "AUTO\nLEFT", UDim2.new(1, COL2_X, BASE_Y, ROW_Y[1]), "LK_mob_left.txt",
         function(setActive)
             if not autoLeftEnabled then queueAutoLeftStart(); setActive(true)
             else stopAutoLeft(); autoLeftEnabled=false; setActive(false) end
         end, true)
-    makeBtn("AutoBat", "BAT\nAIMBOT", UDim2.new(1, COL1_X, BASE_Y, ROW_Y[2]), "LK_mob_bat.txt",
+
+    makeMobileButton("AutoBat", "AUTO\nBAT", UDim2.new(1, COL1_X, BASE_Y, ROW_Y[2]), "LK_mob_bat.txt",
         function(setActive)
             if not autoBatEnabled then queueAutoBatStart(); setActive(true)
             else disableAutoBat(); autoBatEnabled=false; setActive(false) end
         end, true)
-    makeBtn("AutoRight", "AUTO\nRIGHT", UDim2.new(1, COL2_X, BASE_Y, ROW_Y[2]), "LK_mob_right.txt",
+
+    makeMobileButton("AutoRight", "AUTO\nRIGHT", UDim2.new(1, COL2_X, BASE_Y, ROW_Y[2]), "LK_mob_right.txt",
         function(setActive)
             if not autoRightEnabled then queueAutoRightStart(); setActive(true)
             else stopAutoRight(); autoRightEnabled=false; setActive(false) end
         end, true)
-    makeBtn("TpDown", "TP\nDOWN", UDim2.new(1, COL1_X, BASE_Y, ROW_Y[3]), "LK_mob_tp.txt",
+
+    makeMobileButton("TpDown", "TP\nDOWN", UDim2.new(1, COL1_X, BASE_Y, ROW_Y[3]), "LK_mob_tp.txt",
         function(setActive) runTPFloor(); setActive(true); task.delay(0.5, function() setActive(false) end) end, true)
-    makeBtn("CarrySpd", "CARRY\nSPD", UDim2.new(1, COL2_X, BASE_Y, ROW_Y[3]), "LK_mob_carry.txt",
+
+    -- CARRY SPD corrigido
+    makeMobileButton("CarrySpd", "CARRY\nSPD", UDim2.new(1, COL2_X, BASE_Y, ROW_Y[3]), "LK_mob_carry.txt",
         function(setActive)
+            -- Desativa qualquer modo Lagger antes
+            if laggerToggled then
+                toggleLaggerMode()
+                task.wait(0.05)
+            end
             toggleCarryMode()
-            setActive(speedMode)
-        end, true)
-    makeBtn("LaggerMode", "LAGGER\nMODE", UDim2.new(1, COL2_X, BASE_Y, ROW_Y[4]), "LK_mob_lagger.txt",
-        function(setActive)
-            toggleLaggerMode()
-            setActive(laggerToggled and laggerPhase==1)
-        end, true)
-    makeBtn("LaggerCarry", "LAGGER\nCARRY", UDim2.new(1, COL1_X, BASE_Y, ROW_Y[4]), "LK_mob_steal.txt",
-        function(setActive)
-            if not laggerToggled then toggleLaggerMode() end
-            if laggerPhase ~= 2 then toggleLaggerMode() end
-            setActive(laggerToggled and laggerPhase==2)
+            setActive(speedMode and not laggerToggled)
         end, true)
 
-    print("✅ Hub mobile LK adicionado com sucesso!")
+    -- LAGGER MODE corrigido
+    makeMobileButton("LaggerMode", "LAGGER\nMODE", UDim2.new(1, COL2_X, BASE_Y, ROW_Y[4]), "LK_mob_lagger.txt",
+        function(setActive)
+            toggleLaggerMode()
+            task.wait(0.05)
+            setActive(laggerToggled and laggerPhase == 1)
+        end, true)
+        
+    -- Ajuste responsivo
+    local function resizeForSmall()
+        local screenW = workspace.CurrentCamera.ViewportSize.X
+        if screenW and screenW < 500 then
+            for _, container in ipairs(mobileGui:GetChildren()) do
+                if container:IsA("Frame") then
+                    container.Size = UDim2.new(0, 50, 0, 50)
+                    local btn = container:FindFirstChildOfClass("TextButton")
+                    if btn then btn.TextSize = 10 end
+                end
+            end
+        end
+    end
+    resizeForSmall()
+    workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(resizeForSmall)
+
+    print("✅ Hub mobile LK corrigido - todos os botões funcionando")
 end)
