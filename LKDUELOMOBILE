@@ -1373,27 +1373,6 @@ task.spawn(function()
         return setActive
     end
 
-    -- Botão de trava (lock)
-    local lockContainer = Instance.new("Frame", MobilePanel)
-    lockContainer.Size = UDim2.new(0, 30, 0, 30)
-    lockContainer.Position = UDim2.new(1, -40, 0.5, -15)
-    lockContainer.BackgroundColor3 = Color3.fromRGB(0,0,0)
-    Instance.new("UICorner", lockContainer).CornerRadius = UDim.new(0, 8)
-    local lockBtn = Instance.new("TextButton", lockContainer)
-    lockBtn.Size = UDim2.new(1,0,1,0)
-    lockBtn.BackgroundTransparency = 1
-    lockBtn.Text = "🔓"
-    lockBtn.TextSize = 16
-    lockBtn.Font = Enum.Font.GothamBold
-    lockBtn.MouseButton1Click:Connect(function()
-        Mobile.Locked = not Mobile.Locked
-        lockBtn.Text = Mobile.Locked and "🔒" or "🔓"
-    end)
-    lockBtn.TouchTap:Connect(function()
-        Mobile.Locked = not Mobile.Locked
-        lockBtn.Text = Mobile.Locked and "🔒" or "🔓"
-    end)
-
     -- Criar botões (use as funções já existentes do LK HUB)
     -- Nota: As funções toggleCarryMode, toggleLaggerMode, queueAutoBatStart, etc. estão disponíveis globalmente
     makeBtn("DropBR", "DROP\nBR", UDim2.new(1, COL1_X, BASE_Y, ROW_Y[1]), "LK_mob_drop.txt",
