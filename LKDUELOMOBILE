@@ -1176,186 +1176,155 @@ local function buildGui()
 	footerLabel.Font=Enum.Font.GothamBold;footerLabel.TextSize=10
 	footerLabel.TextXAlignment=Enum.TextXAlignment.Left
 
-	-- ========== MOBILE BUTTONS PANEL ==========
+	-- ========== MOBILE BUTTONS PANEL (OITAVOS) ==========
 	local isMobile = UIS.TouchEnabled and not UIS.MouseEnabled
-	if isMobile then
-		local mobilePanel = Instance.new("Frame", gui)
-		mobilePanel.Name = "MobilePanel"
-		mobilePanel.Size = UDim2.new(0, 420, 0, 70)
-		mobilePanel.Position = UDim2.new(0.5, -210, 1, -80)
-		mobilePanel.BackgroundColor3 = Color3.fromRGB(5, 5, 8)
-		mobilePanel.BackgroundTransparency = 0.25
-		mobilePanel.BorderSizePixel = 0
-		Instance.new("UICorner", mobilePanel).CornerRadius = UDim.new(0, 12)
-		
-		local lockBtn = Instance.new("TextButton", mobilePanel)
-		lockBtn.Size = UDim2.new(0, 30, 0, 30)
-		lockBtn.Position = UDim2.new(0, 5, 0.5, -15)
-		lockBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
-		lockBtn.BorderSizePixel = 0
-		lockBtn.Text = "🔓"
-		lockBtn.TextSize = 16
-		lockBtn.Font = Enum.Font.GothamBold
-		lockBtn.TextColor3 = Color3.fromRGB(200,200,200)
-		Instance.new("UICorner", lockBtn).CornerRadius = UDim.new(0, 8)
-		
-		local locked = false
-		local function setLock(lock)
-			locked = lock
-			lockBtn.Text = locked and "🔒" or "🔓"
-			lockBtn.BackgroundColor3 = locked and Color3.fromRGB(80,30,30) or Color3.fromRGB(30,30,40)
-			mobilePanel.Active = not locked
+	local mobilePanel = Instance.new("Frame", gui)
+	mobilePanel.Name = "MobileHubPanel"
+	mobilePanel.Size = UDim2.new(0, 320, 0, 280)
+	mobilePanel.Position = UDim2.new(0.5, -160, 0.8, -140)
+	mobilePanel.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+	mobilePanel.BackgroundTransparency = 0.15
+	mobilePanel.BorderSizePixel = 0
+	mobilePanel.Active = true
+	Instance.new("UICorner", mobilePanel).CornerRadius = UDim.new(0, 16)
+	Instance.new("UIStroke", mobilePanel).Color = Color3.fromRGB(80, 80, 100)
+	Instance.new("UIStroke", mobilePanel).Thickness = 1.5
+
+	-- Título
+	local mobTitle = Instance.new("TextLabel", mobilePanel)
+	mobTitle.Size = UDim2.new(1, 0, 0, 32)
+	mobTitle.BackgroundTransparency = 1
+	mobTitle.Text = "⚡ LK HUB MOBILE ⚡"
+	mobTitle.TextColor3 = Color3.fromRGB(220, 45, 60)
+	mobTitle.Font = Enum.Font.GothamBold
+	mobTitle.TextSize = 14
+	mobTitle.TextScaled = true
+
+	-- Botão fechar painel mobile (opcional, não afeta o hub principal)
+	local mobClose = Instance.new("TextButton", mobilePanel)
+	mobClose.Size = UDim2.new(0, 28, 0, 28)
+	mobClose.Position = UDim2.new(1, -34, 0, 2)
+	mobClose.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+	mobClose.Text = "✕"
+	mobClose.TextColor3 = Color3.fromRGB(255, 255, 255)
+	mobClose.Font = Enum.Font.GothamBold
+	mobClose.TextSize = 14
+	Instance.new("UICorner", mobClose).CornerRadius = UDim.new(0, 8)
+	mobClose.MouseButton1Click:Connect(function() mobilePanel.Visible = not mobilePanel.Visible end)
+	mobClose.TouchTap:Connect(function() mobilePanel.Visible = not mobilePanel.Visible end)
+
+	-- Arrastar mobilePanel
+	local mobDrag, mobDragStart, mobStartPos
+	mobilePanel.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
+			mobDrag = true
+			mobDragStart = input.Position
+			mobStartPos = mobilePanel.Position
 		end
-		setLock(false)
-		
-		lockBtn.MouseButton1Click:Connect(function() setLock(not locked) end)
-		lockBtn.TouchTap:Connect(function() setLock(not locked) end)
-		
-		local dragging, dragStart, startPos
-		mobilePanel.InputBegan:Connect(function(input)
-			if locked then return end
-			if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
-				dragging = true
-				dragStart = input.Position
-				startPos = mobilePanel.Position
-			end
-		end)
-		mobilePanel.InputEnded:Connect(function(input)
-			dragging = false
-		end)
-		UIS.InputChanged:Connect(function(input)
-			if not dragging or locked then return end
-			if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseMovement then
-				local delta = input.Position - dragStart
-				local newX = startPos.X.Scale * UIS.AbsoluteSize.X + startPos.X.Offset + delta.X
-				local newY = startPos.Y.Scale * UIS.AbsoluteSize.Y + startPos.Y.Offset + delta.Y
-				mobilePanel.Position = UDim2.new(0, newX, 0, newY)
-			end
-		end)
-		
-		local function makeMobBtn(text, color, callback, posX)
-			local btn = Instance.new("TextButton", mobilePanel)
-			btn.Size = UDim2.new(0, 52, 0, 48)
-			btn.Position = UDim2.new(posX, 0, 0.5, -24)
-			btn.BackgroundColor3 = color
-			btn.BorderSizePixel = 0
-			btn.Text = text
-			btn.TextColor3 = Color3.fromRGB(255,255,255)
-			btn.Font = Enum.Font.GothamBold
-			btn.TextSize = 10
-			Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 8)
-			local stroke = Instance.new("UIStroke", btn)
-			stroke.Color = Color3.fromRGB(80, 80, 100)
-			stroke.Thickness = 1
-			
-			btn.MouseButton1Click:Connect(callback)
-			btn.TouchTap:Connect(callback)
-			return btn
+	end)
+	mobilePanel.InputEnded:Connect(function() mobDrag = false end)
+	UIS.InputChanged:Connect(function(input)
+		if not mobDrag then return end
+		if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseMovement then
+			local delta = input.Position - mobDragStart
+			local newX = mobStartPos.X.Scale * UIS.AbsoluteSize.X + mobStartPos.X.Offset + delta.X
+			local newY = mobStartPos.Y.Scale * UIS.AbsoluteSize.Y + mobStartPos.Y.Offset + delta.Y
+			mobilePanel.Position = UDim2.new(0, newX, 0, newY)
 		end
-		
-		local mobAutoBat = false
-		local mobAutoLeft = false
-		local mobAutoRight = false
-		
-		local spdBtn = makeMobBtn("SPD", Color3.fromRGB(210, 35, 55), function()
-			toggleCarryMode()
-			saveConfig()
-		end, 0.10)
-		
-		local lagBtn = makeMobBtn("LAG", Color3.fromRGB(210, 35, 55), function()
-			toggleLaggerMode()
-			saveConfig()
-		end, 0.20)
-		
-		local batBtn = makeMobBtn("BAT", Color3.fromRGB(40, 40, 55), function()
-			mobAutoBat = not mobAutoBat
-			if mobAutoBat then
-				queueAutoBatStart()
-				batBtn.BackgroundColor3 = Color3.fromRGB(140, 20, 30)
-			else
-				autoBatEnabled = false
-				disableAutoBat()
-				batBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 55)
-			end
-			if autoBatSetVisual then autoBatSetVisual(mobAutoBat) end
-		end, 0.30)
-		
-		local leftBtn = makeMobBtn("← L", Color3.fromRGB(40, 40, 55), function()
-			mobAutoLeft = not mobAutoLeft
-			if mobAutoLeft then
-				queueAutoLeftStart()
-				leftBtn.BackgroundColor3 = Color3.fromRGB(140, 20, 30)
-			else
-				autoLeftEnabled = false
-				stopAutoLeft()
-				leftBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 55)
-			end
-			if autoLeftSetVisual then autoLeftSetVisual(mobAutoLeft) end
-		end, 0.40)
-		
-		local rightBtn = makeMobBtn("R →", Color3.fromRGB(40, 40, 55), function()
-			mobAutoRight = not mobAutoRight
-			if mobAutoRight then
-				queueAutoRightStart()
-				rightBtn.BackgroundColor3 = Color3.fromRGB(140, 20, 30)
-			else
-				autoRightEnabled = false
-				stopAutoRight()
-				rightBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 55)
-			end
-			if autoRightSetVisual then autoRightSetVisual(mobAutoRight) end
-		end, 0.50)
-		
-		local dropBtn = makeMobBtn("DROP", Color3.fromRGB(40, 40, 55), function()
-			runDrop()
-		end, 0.60)
-		
-		local tpBtn = makeMobBtn("TP↓", Color3.fromRGB(40, 40, 55), function()
-			runTPFloor()
-		end, 0.70)
-		
-		local resetBtn = makeMobBtn("RST", Color3.fromRGB(40, 40, 55), function()
-			cursedInstaReset()
-		end, 0.80)
-		
-		local function adjustPanelSize()
-			local screenW = workspace.CurrentCamera.ViewportSize.X
-			if screenW < 500 then
-				mobilePanel.Size = UDim2.new(0, 360, 0, 60)
-				mobilePanel.Position = UDim2.new(0.5, -180, 1, -70)
-				for _, btn in ipairs(mobilePanel:GetChildren()) do
-					if btn:IsA("TextButton") and btn ~= lockBtn then
-						btn.Size = UDim2.new(0, 44, 0, 40)
-						btn.TextSize = 9
-					end
+	end)
+
+	local function createMobButton(parent, text, yPos, xPos, color, callback)
+		local btn = Instance.new("TextButton", parent)
+		btn.Size = UDim2.new(0, 140, 0, 48)
+		btn.Position = UDim2.new(xPos, 0, 0, yPos)
+		btn.BackgroundColor3 = color
+		btn.BorderSizePixel = 0
+		btn.Text = text
+		btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+		btn.Font = Enum.Font.GothamBold
+		btn.TextSize = 13
+		btn.TextWrapped = true
+		Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 12)
+		local stroke = Instance.new("UIStroke", btn)
+		stroke.Color = Color3.fromRGB(100, 100, 120)
+		stroke.Thickness = 1
+		btn.MouseButton1Click:Connect(callback)
+		btn.TouchTap:Connect(callback)
+		return btn
+	end
+
+	local function toggleMobColor(btn, state, activeColor, inactiveColor)
+		btn.BackgroundColor3 = state and activeColor or inactiveColor
+	end
+
+	local carryMobBtn = createMobButton(mobilePanel, "CARRY\nSPD", 40, 0.02, Color3.fromRGB(40,40,55), function()
+		toggleCarryMode()
+		toggleMobColor(carryMobBtn, speedMode, Color3.fromRGB(140,20,30), Color3.fromRGB(40,40,55))
+	end)
+	local laggerMobBtn = createMobButton(mobilePanel, "LAGGER\nMODE", 40, 0.52, Color3.fromRGB(40,40,55), function()
+		toggleLaggerMode()
+		toggleMobColor(laggerMobBtn, laggerToggled, Color3.fromRGB(140,20,30), Color3.fromRGB(40,40,55))
+	end)
+	local autoBatMobBtn = createMobButton(mobilePanel, "AUTO\nBAT", 110, 0.02, Color3.fromRGB(40,40,55), function()
+		if not autoBatEnabled then
+			queueAutoBatStart()
+			toggleMobColor(autoBatMobBtn, true, Color3.fromRGB(140,20,30), Color3.fromRGB(40,40,55))
+		else
+			disableAutoBat()
+			autoBatEnabled = false
+			toggleMobColor(autoBatMobBtn, false, Color3.fromRGB(140,20,30), Color3.fromRGB(40,40,55))
+		end
+	end)
+	local autoLeftMobBtn = createMobButton(mobilePanel, "AUTO\nLEFT", 110, 0.52, Color3.fromRGB(40,40,55), function()
+		if not autoLeftEnabled then
+			queueAutoLeftStart()
+			toggleMobColor(autoLeftMobBtn, true, Color3.fromRGB(140,20,30), Color3.fromRGB(40,40,55))
+		else
+			stopAutoLeft()
+			autoLeftEnabled = false
+			toggleMobColor(autoLeftMobBtn, false, Color3.fromRGB(140,20,30), Color3.fromRGB(40,40,55))
+		end
+	end)
+	local autoRightMobBtn = createMobButton(mobilePanel, "AUTO\nRIGHT", 180, 0.02, Color3.fromRGB(40,40,55), function()
+		if not autoRightEnabled then
+			queueAutoRightStart()
+			toggleMobColor(autoRightMobBtn, true, Color3.fromRGB(140,20,30), Color3.fromRGB(40,40,55))
+		else
+			stopAutoRight()
+			autoRightEnabled = false
+			toggleMobColor(autoRightMobBtn, false, Color3.fromRGB(140,20,30), Color3.fromRGB(40,40,55))
+		end
+	end)
+	local dropMobBtn = createMobButton(mobilePanel, "DROP\nBR", 180, 0.52, Color3.fromRGB(40,40,55), function()
+		runDrop()
+	end)
+	local tpMobBtn = createMobButton(mobilePanel, "TP\nDOWN", 250, 0.02, Color3.fromRGB(40,40,55), function()
+		runTPFloor()
+	end)
+	local resetMobBtn = createMobButton(mobilePanel, "INSTANT\nRESET", 250, 0.52, Color3.fromRGB(40,40,55), function()
+		cursedInstaReset()
+	end)
+
+	-- Ajuste responsivo
+	local function resizeMobilePanel()
+		local screenW = workspace.CurrentCamera.ViewportSize.X
+		if screenW and screenW < 500 then
+			mobilePanel.Size = UDim2.new(0, 280, 0, 260)
+			mobilePanel.Position = UDim2.new(0.5, -140, 0.8, -130)
+			for _, btn in ipairs(mobilePanel:GetChildren()) do
+				if btn:IsA("TextButton") and btn ~= mobClose and btn ~= mobTitle then
+					btn.Size = UDim2.new(0, 124, 0, 44)
+					btn.TextSize = 11
 				end
-				lockBtn.Size = UDim2.new(0, 26, 0, 26)
-				lockBtn.TextSize = 14
 			end
 		end
-		adjustPanelSize()
-		workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(adjustPanelSize)
-		
-		local function showLockToast()
-			local toast = Instance.new("TextLabel", gui)
-			toast.Size = UDim2.new(0, 120, 0, 30)
-			toast.Position = UDim2.new(0.5, -60, 0.5, -15)
-			toast.BackgroundColor3 = Color3.fromRGB(20,20,25)
-			toast.TextColor3 = Color3.fromRGB(255,255,255)
-			toast.Text = locked and "🔒 Trava ativada" or "🔓 Trava desativada"
-			toast.Font = Enum.Font.GothamBold
-			toast.TextSize = 12
-			toast.BackgroundTransparency = 0.2
-			Instance.new("UICorner", toast).CornerRadius = UDim.new(0, 8)
-			toast.ZIndex = 999
-			task.delay(1.5, function() toast:Destroy() end)
-		end
-		local oldSetLock = setLock
-		setLock = function(lock)
-			oldSetLock(lock)
-			showLockToast()
-		end
-		setLock(locked)
+	end
+	resizeMobilePanel()
+	workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(resizeMobilePanel)
+
+	-- Se não for mobile, esconder o painel (mas mantemos visível mesmo em PC para teste)
+	if not isMobile then
+		mobilePanel.Visible = true  -- você pode mudar para false se quiser esconder em PC
 	end
 
 	UIS.InputBegan:Connect(function(input,gpe)
@@ -1448,3 +1417,257 @@ buildGui()
 loadConfigState()
 
 print("LK HUB Loaded - " .. DISCORD_TEXT)
+-- ========== PAINEL MOBILE (ADAPTADO DO VEXUL HUB) ==========
+local MobilePanel = nil
+local MobileButtons = { Visible = true, Locked = true, Buttons = {}, Containers = {} }
+
+local function createMobilePanel()
+    local panel = Instance.new("ScreenGui")
+    panel.Name = "LKHubMobileButtons"
+    panel.Parent = LP:WaitForChild("PlayerGui")
+    panel.ResetOnSpawn = false
+    panel.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+    local BTN_W = 58
+    local BTN_H = 58
+    local CORNER = 14
+    local GAP = 12
+    local COL1_X = -(BTN_W + GAP + BTN_W + 10)
+    local COL2_X = -(BTN_W + 10)
+    local BASE_Y = 0.30
+    local ROW_Y = {
+        -((BTN_H*4+GAP*3)/2),
+        -((BTN_H*4+GAP*3)/2)+(BTN_H+GAP),
+        -((BTN_H*4+GAP*3)/2)+(BTN_H+GAP)*2,
+        -((BTN_H*4+GAP*3)/2)+(BTN_H+GAP)*3
+    }
+
+    local function makeSeparateBtn(name, text, defaultPos, saveKey, callback, isToggle)
+        local container = Instance.new("Frame")
+        container.Name = name
+        container.Parent = panel
+        container.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+        container.BackgroundTransparency = 0
+        container.BorderSizePixel = 0
+        container.Size = UDim2.new(0, BTN_W, 0, BTN_H)
+        container.Position = defaultPos
+        Instance.new("UICorner", container).CornerRadius = UDim.new(0, CORNER)
+
+        local btn = Instance.new("TextButton", container)
+        btn.Size = UDim2.new(1, 0, 1, 0)
+        btn.BackgroundTransparency = 1
+        btn.BorderSizePixel = 0
+        btn.Font = Enum.Font.GothamBlack
+        btn.Text = text
+        btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+        btn.TextSize = 12
+        btn.TextWrapped = true
+        btn.AutoButtonColor = false
+
+        local active = false
+        local function setActive(state)
+            active = state
+            if active then
+                container.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+                btn.TextColor3 = Color3.fromRGB(0, 0, 0)
+            else
+                container.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+                btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+            end
+        end
+
+        btn.MouseButton1Down:Connect(function()
+            if not isToggle then
+                container.BackgroundColor3 = Color3.fromRGB(255,255,255)
+                btn.TextColor3 = Color3.fromRGB(0,0,0)
+            end
+        end)
+        btn.MouseButton1Up:Connect(function()
+            if not isToggle then
+                container.BackgroundColor3 = Color3.fromRGB(0,0,0)
+                btn.TextColor3 = Color3.fromRGB(255,255,255)
+            end
+        end)
+        btn.MouseButton1Click:Connect(function()
+            if isToggle then setActive(not active) end
+            if callback then callback(setActive, active) end
+        end)
+
+        -- Arrastar (apenas se não estiver travado)
+        local dragging = false
+        local dragStart = nil
+        local startPos = nil
+        container.InputBegan:Connect(function(input)
+            if MobileButtons.Locked then return end
+            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                dragging = true
+                dragStart = input.Position
+                startPos = container.Position
+                input.Changed:Connect(function()
+                    if input.UserInputState == Enum.UserInputState.End or input.UserInputState == Enum.UserInputState.Cancelled then
+                        dragging = false
+                    end
+                end)
+            end
+        end)
+        UIS.InputChanged:Connect(function(input)
+            if not dragging then return end
+            if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+                local delta = input.Position - dragStart
+                container.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+            end
+        end)
+
+        -- Salvar posição
+        local savedPos = nil
+        pcall(function() savedPos = readfile(saveKey) end)
+        if savedPos and savedPos ~= "" then
+            local parts = {}
+            for part in string.gmatch(savedPos, "[^,]+") do table.insert(parts, part) end
+            if #parts >= 4 then
+                container.Position = UDim2.new(tonumber(parts[1]), tonumber(parts[2]), tonumber(parts[3]), tonumber(parts[4]))
+            end
+        end
+        local lastSave = 0
+        container:GetPropertyChangedSignal("Position"):Connect(function()
+            if tick() - lastSave > 0.5 then
+                lastSave = tick()
+                local pos = container.Position
+                local str = string.format("%.3f,%.1f,%.3f,%.1f", pos.X.Scale, pos.X.Offset, pos.Y.Scale, pos.Y.Offset)
+                pcall(function() writefile(saveKey, str) end)
+            end
+        end)
+
+        container.Visible = MobileButtons.Visible
+        table.insert(MobileButtons.Containers, container)
+        return setActive
+    end
+
+    -- ========== Criação dos 8 botões ==========
+    -- Botão CARRY SPD
+    local carrySpdSet = makeSeparateBtn("BtnCarrySpd", "CARRY\nSPD",
+        UDim2.new(1, COL2_X, BASE_Y, ROW_Y[3]), "LKHub_carryspd.txt",
+        function(setActive)
+            toggleCarryMode()
+            setActive(speedMode)  -- speedMode é a variável do LK HUB
+        end, true)
+
+    -- Botão LAGGER MODE
+    local laggerSet = makeSeparateBtn("BtnLaggerMode", "LAGGER\nMODE",
+        UDim2.new(1, COL2_X, BASE_Y, ROW_Y[4]), "LKHub_laggermode.txt",
+        function(setActive)
+            toggleLaggerMode()
+            setActive(laggerToggled and laggerPhase == 1)  -- ativo apenas no modo normal
+        end, true)
+
+    -- Botão LAGGER CARRY (adicional, se quiser)
+    local laggerCarrySet = makeSeparateBtn("BtnLaggerCarry", "LAGGER\nCARRY",
+        UDim2.new(1, COL1_X, BASE_Y, ROW_Y[4]), "LKHub_laggercarry.txt",
+        function(setActive)
+            -- Se não existir toggleLaggerCarry, use toggleLaggerMode() duas vezes
+            -- Mas vamos criar uma função específica
+            if not laggerToggled then
+                toggleLaggerMode()  -- liga lagger normal
+                task.wait(0.05)
+            end
+            if laggerPhase ~= 2 then
+                toggleLaggerMode()  -- muda para carry
+            else
+                toggleLaggerMode()  -- desliga
+            end
+            setActive(laggerToggled and laggerPhase == 2)
+        end, true)
+
+    -- Botão AUTO BAT
+    local autoBatSet = makeSeparateBtn("BtnAutoBat", "AUTO\nBAT",
+        UDim2.new(1, COL1_X, BASE_Y, ROW_Y[2]), "LKHub_autobat.txt",
+        function(setActive)
+            if not autoBatEnabled then
+                queueAutoBatStart()
+                setActive(true)
+            else
+                disableAutoBat()
+                autoBatEnabled = false
+                setActive(false)
+            end
+        end, true)
+
+    -- Botão AUTO LEFT
+    local autoLeftSet = makeSeparateBtn("BtnAutoLeft", "AUTO\nLEFT",
+        UDim2.new(1, COL2_X, BASE_Y, ROW_Y[1]), "LKHub_autoleft.txt",
+        function(setActive)
+            if not autoLeftEnabled then
+                queueAutoLeftStart()
+                setActive(true)
+            else
+                stopAutoLeft()
+                autoLeftEnabled = false
+                setActive(false)
+            end
+        end, true)
+
+    -- Botão AUTO RIGHT
+    local autoRightSet = makeSeparateBtn("BtnAutoRight", "AUTO\nRIGHT",
+        UDim2.new(1, COL2_X, BASE_Y, ROW_Y[2]), "LKHub_autoright.txt",
+        function(setActive)
+            if not autoRightEnabled then
+                queueAutoRightStart()
+                setActive(true)
+            else
+                stopAutoRight()
+                autoRightEnabled = false
+                setActive(false)
+            end
+        end, true)
+
+    -- Botão DROP BR
+    local dropBrSet = makeSeparateBtn("BtnDropBR", "DROP\nBR",
+        UDim2.new(1, COL1_X, BASE_Y, ROW_Y[1]), "LKHub_dropbr.txt",
+        function(setActive)
+            runDrop()
+            setActive(true)
+            task.delay(0.5, function() setActive(false) end)
+        end, true)
+
+    -- Botão TP DOWN
+    local tpDownSet = makeSeparateBtn("BtnTpDown", "TP\nDOWN",
+        UDim2.new(1, COL1_X, BASE_Y, ROW_Y[3]), "LKHub_tpdown.txt",
+        function(setActive)
+            runTPFloor()
+            setActive(true)
+            task.delay(0.5, function() setActive(false) end)
+        end, true)
+
+    -- Botão INSTANT RESET
+    local resetSet = makeSeparateBtn("BtnReset", "INSTANT\nRESET",
+        UDim2.new(1, COL2_X, BASE_Y, ROW_Y[1] + (BTN_H+GAP)*3), "LKHub_reset.txt",
+        function(setActive)
+            cursedInstaReset()
+            setActive(true)
+            task.delay(0.5, function() setActive(false) end)
+        end, true)
+
+    -- Armazenar referências para atualizações futuras
+    MobileButtons.Buttons = {
+        carrySpeed = carrySpdSet,
+        lagger = laggerSet,
+        laggerCarry = laggerCarrySet,
+        autoBat = autoBatSet,
+        autoLeft = autoLeftSet,
+        autoRight = autoRightSet,
+        dropBR = dropBrSet,
+        tpDown = tpDownSet,
+        reset = resetSet,
+    }
+
+    return panel
+end
+
+-- Criar o painel mobile (sempre visível, mas você pode condicionar a mobile)
+task.spawn(function()
+    task.wait(1) -- espera o hub principal carregar
+    MobilePanel = createMobilePanel()
+end)
+
+-- Função para travar/destravar todos os botões (opcional, se quiser um botão de trava)
+-- Você pode adicionar um toggle no menu principal para controlar MobileButtons.Locked
